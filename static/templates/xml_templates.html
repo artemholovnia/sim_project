@@ -1,0 +1,56 @@
+<!--<script type="text/fileTemplate" id="fileTemplate">
+    <div class="row"><div class="col"><%file_name%></div><div class="col"><%user%></div><div class="col"><%path%></div></div>
+    <div class="code"></div>
+</script>
+-->
+
+<div id="code-panel">
+    <div class="row">
+        <!--<div class="col-3"><input type="text" class="form-control" id="file_name_input"></div>-->
+    </div>
+</div>
+
+<script type="text/folderTemplate" id="folderTemplate">
+    <li data-path="<%path%>">
+        <i class="far fa-folder"></i>
+        <a href="#" class="div-path"><%title%></a>
+    </li>
+</script>
+
+<script type="text/fileTemplate" id="fileTemplate">
+    <li data-path="<%path%>">
+        <i class="far fa-file"></i>
+        <span><%title%></span>
+    </li>
+</script>
+
+<div id="changeDirTemplate" style="background-color: #ececec;">
+    <div style="border-bottom: 1px solid black;padding: 0.5vw 1vw;">
+        <div class="feedbacks col-12" data-field_name="file_name"></div> <!--feedbacks-->
+        <div class="row" style="list-style: none;max-height: 10vw;height: auto;overflow: auto;margin: 0;">
+            <ul class="col-2" style="margin:  0;padding:  0;">
+                <li style="display: inline-block"><i class="fas fa-arrow-left"></i></li>
+                <li onclick="load_directories()" style="display: inline-block"><i class="fas fa-home"></i></li>
+                <li style="display: inline-block"><i class="fas fa-arrow-right"></i></li>
+                <li style="display: inline-block"><i class="fas fa-ellipsis-h" id="change_abs_path"></i></li>
+            </ul>
+            <div class="col-10">
+                <li style="display: inline-block">
+                    <label for="file_name">Nazwa pliku</label>
+                    <input type="text" id="file_name">
+                    <button class="btn btn-success" onclick="save_auto_data()">Save</button>
+                </li>
+            </div>
+            <li class="col-12" style="display: inline-block">
+                <li style="display: none;"><label for="file_name">Path</label><input type="text" id="find_abs_path"></li>
+            </li>
+            <input type="text" id="hidden_path" style="display: none;">
+        </div>
+        <ul class="col-12" id="passed_dirs"></ul> <!-- passed dirs -->
+    </div>
+    <ul id="dirs" style="list-style: none;padding: 1vw;max-height: 10vw;height: auto;overflow: auto;"></ul>
+</div>
+
+<script type="text/passedDir" id="passedDir">
+    <li onclick='load_directories(path="<%path%>")' style='cursor:pointer; display:inline-block;background-color: #a7a7a7;color: white;padding: 0.3vw;'><span><%dir_name%></span></div></li>
+</script>

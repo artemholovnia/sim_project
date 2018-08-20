@@ -1,0 +1,84 @@
+{% extends 'main_template.html' %}
+{% load static %}
+
+{% block title %}users{% endblock %}
+
+{% block js %}
+    <script>
+        function zoom_image(user_id, template){
+                $.ajax({
+                    url:'{% url 'users' %}',
+                    method:'POST',
+                    dataType:'json',
+                    data:{
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                        'user_id':user_id,
+                    },
+                    success:function (data) {
+                        $(document).ready(function () {
+                            Mustache.tags = ['<%', '%>'];
+                            rendered_data={
+                                image_url:data.image,
+                            };
+                            rendered_template = Mustache.render(template, rendered_data);
+                            $('body').append(rendered_template)
+                            $('document').ready(function () {
+                                $('.zoom').find('img').attr('src', $('.zoom').find('img').attr('load_src'));
+                            })
+                        })
+
+                    },
+                    error:function () {
+                        alert('error')
+                    }
+                })
+            }
+
+        function close_zoom() {
+            $('.zoom_grid').remove();
+        }
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-10">
+                {% for user in users %}
+                    <div class="row">
+                        {% for image in user_images %}
+                            {% if image.user == user %}
+                                <div class="col-2 col-md-2"><img src="{{ image.image.url }}" style="max-width: 100%" onclick="zoom_image({{ user.id }}, document.getElementById('zoomImage').innerHTML)"></div>
+                            {% endif %}
+                        {% endfor %}
+                        <div class='col-8'><a href="{% url 'user_detail' user.id %}" style="font-size: 2vw">{{ user.username }}</a></div>
+                        <div class="col-12 col-md-2">
+                            <div class="col-12 col-md-12">
+                                <button class="btn-success btn-block" style="margin-bottom: 1vw;">Edytuj</button>
+                            </div>
+                            <div class="col-12 col-md-12">
+                                <button class="btn-danger btn-block">Usun</button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block templates %}
+    <script type="text/zoomImage" id="zoomImage">
+    <div class='zoom_grid' style="background-color:rgba(255, 255, 255, 0.90); min-height:100%; min-width:100%; position:absolute; top:0;">
+        <div class='close_zoom' onclick="close_zoom()" style="font-size: 3vw; position: absolute; top: 2vw; right: 2vw; cursor:pointer">X</div>
+        <div class="zoom row justify-content-center">
+            <div class="zoomed_image">
+                <img style="max-width:100%;" src="{% static 'images/spinner.gif' %}" load_src="<%image_url%>">
+            </div>
+        </div>
+    </div>
+    </script>
+{% endblock %}
+
+{% block script_onload %}
+{% endblock %}

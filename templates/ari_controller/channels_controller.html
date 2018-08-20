@@ -1,0 +1,85 @@
+{% extends 'main_template.html' %}
+{% load staticfiles %}
+{% block content %}
+    <div class="row channels">
+        <div class="col-12 header">
+            <div class="row">
+                <div class="col-2">id kanalu</div>
+                <div class="col-1">prioritet</div>
+                <div class="col-3">typ polaczenia</div>
+                <div class="col-3">Dzwoni</div>
+                <div class="col-3">Przyjmuje</div>
+            </div>
+        </div>
+    </div>
+
+    <div cl
+{% endblock %}
+
+{% block script_onload %}
+    <script src="{% static 'js/get_template.js' %}"></script>
+
+    <script>
+        Mustache.tags=['<%', '%>'];
+        function generate_content(template, data){
+            rendered_template=Mustache.render(template, data);
+            $('.channels').append(rendered_template);
+        }
+
+        function edit_content(data){
+            editable=$('#'+data.channel_id);
+            editable.find('#channel_id').html(data.channel_id);
+            editable.find('#priority').html(data.priority);
+            editable.find('#channel_type').html(data.channel_type);
+            editable.find('#caller_name').html(data.caller_name);
+            editable.find('#connected_name').html(data.connected_name);
+        }
+    </script>
+
+    <script>
+        get_template('/static/templates/controller_templates.html', '#messageFromServer', function (template){
+            channel_template=template.html();
+        });
+
+        var host = window.location.host,
+            protocol = window.location.protocol,
+            path_name = window.location.pathname,
+            ws_path = '';
+        if(protocol === 'http:'){
+            ws_path = 'ws://' + host + path_name;
+        } else if(protocol === 'https:'){
+            ws_path = 'wss://' + host + path_name;
+        }
+        var websocket = new WebSocket(ws_path);
+
+        websocket.onmessage = function (e){
+            $('.channel').remove();
+            var parsed_response=undefined;
+            try{parsed_response=JSON.parse(e.data)} catch (error){
+                console.log(e.data);
+            }
+            if(parsed_response !== undefined){
+                if(parsed_response.type==='send.celery'){
+                    messages = JSON.parse(parsed_response.message.data);
+                    if(messages.length !== 0){
+                        for(i=0;i<messages.length;i++){
+                            message = messages[i];
+                            data={channel_id:message.id, priority:message.dialplan.priority, channel_type:message.dialplan.context, caller_name:message.caller.number, connected_name:message.connected.number};
+                            if($('#'+message.id).length > 0){ console.log('edit'); edit_content(data)
+                            } else { generate_content(channel_template, data); }
+                        }
+                    }
+                }
+            }
+        };
+        websocket.onclose = function (e) {
+            console.log('close', e);
+        };
+        websocket.onerror = function (e) {
+            console.log('error', e);
+        };
+        //websocket.onopen = function (e) {
+        //    websocket.send('hello server');
+        //};
+    </script>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.3.0/mustache.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    {% block js %}{% endblock %}
+</head>
+<body>
+
+    <div class="container">
+        <div class="row justify-content-center" style="margin-top: 100px">
+            <div class="col-12 text-center">
+                <h2>Login</h2>
+            </div>
+            <div class="col-12 col-md-6">
+                <form id="login" novalidate>{% csrf_token %}
+                    <div class="form-row">
+                      <div class="col-12 col-md-12" data-field_name="{{ userLoginForm.username.html_name }}">
+                          <div class="col-12"><label for="{{ userLoginForm.username.html_name }}">{{ userLoginForm.username.label }}</label></div>
+                          <div class="col-12">{{ userLoginForm.username }}</div>
+                          <div class="col-12">
+                              <div class="feedbacks"></div>
+                          </div>
+                      </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="col-12 col-md-12" data-field_name="{{ userLoginForm.password.html_name }}">
+                            <div class="col-12"><label for="{{ userLoginForm.password.html_name }}">{{ userLoginForm.password.label }}</label></div>
+                            <div class="col-12">{{ userLoginForm.password }}</div>
+                            <div class="col-12">
+                              <div class="feedbacks"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="validate_error invalid-feedback text-center"></div>
+                    <div class="form-row justify-content-center" style="margin-top: 2vw">
+                        <div class="col-3">
+                            <button type="submit" class=" btn btn-success">Zaloguj sie</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+<script type="text/validMessage" id="validMessage">
+    <div class="valid-feedback feedback" style="display:block;"><%message%></div>
+</script>
+
+<script type="text/invalidMessage" id="invalidMessage">
+    <div class="invalid-feedback feedback" style="display:block;"><%message%></div>
+</script>
+
+<script>
+    $(document).ready(function () {
+        Mustache.tags = ['<%', '%>'];
+        function remove_feedbacks(){
+            $('.feedback').remove();
+            $('input').removeClass(['is-valid', 'is-invalid']);
+        }
+
+        //feedbacks_list  = [{'field_name': 'field name in str' , 'message': 'error message in str' }]
+        function add_feedbacks_invalid(feedbacks_list){
+            var invalid_template = document.getElementById('invalidMessage').innerHTML;
+            for (error=0; error<feedbacks_list.length; error++){
+                var one_field = feedbacks_list[error];
+                rendered_data = {message:one_field.message};
+                rendered_template = Mustache.render(invalid_template, rendered_data);
+                $('div[data-field_name="' + one_field.field_name + '"]').find('.feedbacks').append(rendered_template);
+                $('div[data-field_name="' + one_field.field_name + '"]').find('input').addClass('is-invalid');
+            }
+        }
+
+        form = $('#login');
+        $('body').on('submit', form, function (e) {
+            e.preventDefault();
+            remove_feedbacks();
+            var username = $('#id_username').val(),
+                password = $('#id_password').val();
+            $.ajax({
+                url:'{% url 'login' %}',
+                dataType:'json',
+                method:'POST',
+                data:{
+                    'csrfmiddlewaretoken':'{{ csrf_token }}',
+                    'username':username,
+                    'password':password,
+                },
+                success:function (data) {
+                    if (data.success){window.location.href=data.redirect_url;}
+                    else {add_feedbacks_invalid(data.errors);}
+                },
+                error:function () {
+                    alert('error')
+                }
+            })
+        })
+    })
+</script>

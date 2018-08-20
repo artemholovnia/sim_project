@@ -1,0 +1,88 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.3.0/mustache.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+    <script src="{% static 'js/permission_denied.js' %}"></script>
+    {% block js %}{% endblock %}
+    <style>
+        .menu a{
+            color: white;
+        }
+        .menu{
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .panel a{
+            color: white;
+        }
+        .panel-btn{
+            padding-bottom: 0.5vw;
+            padding-top: 0.5vw;
+            border-bottom: 1px solid white;
+        }
+    </style>
+    {% block css %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="">Home</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+      <li class="nav-item active">
+        <a class="nav-link" href="{% url 'users' %}">Uzytkownicy</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+{% block modal %}{% endblock %}
+
+<div class="grid">
+    <div class="row">
+        <div class="col-12 col-md-2 navigation" style="background-color: #515151">
+            <div class="row" style="padding: 0.5vw 0; padding-left: 1vw; background-color: #ececec">
+                {% if user.is_authenticated %}
+                    <div class="col-4"><img style="max-width: 100%" src="{% static 'images/3-0.jpg' %}"></div>
+                    <div class="col-8" style="padding-top: 0.5vw"><a href="{% url 'logout' %}">{{ user.username }} | logout</a></div>
+                {% endif %}
+            </div>
+            <div class="row panel" style="padding-left: 1vw">
+                {% if PermissionGroup_permission %}
+                    <div class="col-12 panel-btn"><a href="{% url 'create_permission_group' %}" class="btn-block">Uprawnienia</a></div>
+                {% endif %}
+                {% if createUserRegistration_permission %}
+                    <div class="col-12 panel-btn"><a href="{% url 'user_registration' %}" class="btn-block">Nowy uzytkownik</a></div>
+                {% endif %}
+                {% if xml_permission%}
+                    <div class="col-12 panel-btn"><a href="{% url 'create_xml' %}" class="btn-block">XML konfiguracje</a></div>
+                {% endif %}
+                {% block panel %}{% endblock %}
+            </div>
+        </div>
+        <div class="col-12 col-md-10 content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% block templates %}{% endblock %}
+
+{% block script_onload %}{% endblock %}
+
+</body>
+</html>

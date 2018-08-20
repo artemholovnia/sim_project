@@ -1,0 +1,7 @@
+media/
+test.py
+*.pyc
+migrations/
+__pycache__
+.idea/
+settings.py

@@ -1,0 +1,357 @@
+{% extends 'main_template.html' %}
+{% load static %}
+
+{% block js %}
+        <link rel="stylesheet" href="{% static 'js/codemirror/lib/codemirror.css'%}">
+        <!--<script src="{% static 'js/codemirror/mode/javascript/javascript.js' %}"></script>-->
+        <script src="{% static 'js/codemirror/lib/codemirror.js' %}"></script>
+        <script src="{% static 'js/codemirror/mode/xml/xml.js' %}"></script>
+
+        <link rel="stylesheet" href="{% static 'css/prism.css' %}">
+        <script src="{% static 'js/prism.js' %}"></script>
+        <script src="{% static 'js/tab.js' %}"></script>
+        <script src="{% static 'js/get_template.js' %}"></script>
+
+    <script>
+        function change_abs_path(){
+            $('body').on('click', '#change_abs_path', function () {
+                $('#find_abs_path').parents('li').toggle();
+            })
+        }
+    
+        function clear_directories() {
+            $('#dirs li').remove();
+        }
+
+        function add_passed_dirs(dirs_list) {
+            $('#passed_dirs').html('');
+            get_template('/static/templates/xml_templates.html', '#passedDir', function (template) {
+                dir_template = template.html();
+                for (dir=0; dir<dirs_list.length; dir++){
+                    rendered_template = Mustache.render(dir_template, {dir_name:dirs_list[dir].dir_name, path:dirs_list[dir].path});
+                    $('#passed_dirs').append(rendered_template);
+                }
+            })
+        }
+
+        function load_directories(start_path=undefined){
+            clear_directories();
+            $('.templates').load('/static/templates/xml_templates.html #folderTemplate, #fileTemplate');
+            Mustache.tags = ['<%', '%>'];
+            if (start_path !== undefined){request_data = {'csrfmiddlewaretoken':'{{ csrf_token }}', 'load_directory':true, 'start_path':start_path}}
+            else if (start_path === undefined){request_data = {'csrfmiddlewaretoken':'{{ csrf_token }}', 'load_directory':true}}
+            $('#hidden_path').attr('value', start_path);
+            $.ajax({
+                url:'{% url "create_xml" %}',
+                method:'POST',
+                data:request_data,
+                success:function (data) {
+                    console.log(data);
+                    $('#hidden_path').attr('value', data.start_path); // change hidden path input on start_path
+                    var folder = document.getElementById('folderTemplate').innerHTML,
+                        file = document.getElementById('fileTemplate').innerHTML;
+                    if (data.success){
+                        for (i=0; i<data.dirs.length; i++){
+                            object = data.dirs[i];
+                            if (object.isfile){rendered_template = Mustache.render(file, {title:object.title, path:object.path});}
+                            if (object.isfolder){rendered_template = Mustache.render(folder, {title:object.title, path:object.path});}
+                            $('#dirs').append(rendered_template);
+                        }
+                        add_passed_dirs(data.passed_dirs)
+                    }
+                },
+                error:function () {
+                    alert('error')
+                }
+            });
+            return start_path;
+        }
+    </script>
+
+    <script>
+        function save_with_data(file_name, path, format='xml') {
+            console.log(file_name, path, format);
+            CodeEditor.save();
+            var content = $('#code-area').val();
+            request_data = {'csrfmiddlewaretoken':'{{ csrf_token }}', 'file_name':file_name, 'format':format, 'content':content, 'rewrite_file':true, 'path':path};
+            $.ajax({
+                url:'{% url "create_xml" %}',
+                dataType:'json',
+                method:'POST',
+                data:request_data,
+                success:function (data) {
+                    console.log(data);
+                    if (data.success){load_file_name(data.file_name); $('#changeDirTemplate').remove(); $('#file_path_hidden').attr('value', data.file_path)}
+                    else {add_feedbacks_invalid(data.errors);}
+                },
+                error:function () {alert('error')},
+            })
+        }
+
+        function save_auto_data(format='xml') {
+            var file_name = $('#file_name').val(),
+                path = $("#hidden_path").val(),
+                save_file = false;
+            if (file_name === ''){
+                alert('Wprowadz nazwe pliku');
+            } else {save_file = true};
+            if (save_file){
+                CodeEditor.save();
+                var content = $('#code-area').val();
+                if (path === ''){request_data = {'csrfmiddlewaretoken':'{{ csrf_token }}', 'file_name':file_name, 'format':format, 'content':content, 'create_file':true}}
+                else {request_data = {'csrfmiddlewaretoken':'{{ csrf_token }}', 'file_name':file_name, 'format':format, 'content':content, 'create_file':true, 'path':path}}
+                $.ajax({
+                    url:'{% url "create_xml" %}',
+                    dataType:'json',
+                    method:'POST',
+                    data:request_data,
+                    success:function (data) {
+                        console.log(data);
+                        if (data.success){load_file_name(data.file_name); $('#changeDirTemplate').remove(); $('#file_path_hidden').attr('value', data.file_path)}
+                        else {add_feedbacks_invalid(data.errors);}
+                    },
+                    error:function () {alert('error')},
+                })
+            }
+        }
+    //функция отвечающаа за сохранения документа (требуется path, file_name, content)
+    //save as - входных данных нету, функция считывает имя файла, путь с инпутов и создает новый файл
+    //save - входные данные filename, path (перезаписывает уже созданный файл)
+
+    </script>
+{% endblock %}
+
+{% block css %}
+    <style>
+        .show{
+            display: block;
+        }
+
+        i{
+            cursor: pointer;
+        }
+    </style>
+{% endblock %}
+
+{% block modal %}
+    <div id="modal"></div>
+{% endblock %}
+
+{% block panel %}
+    {% if createXML_permission or updateXML_permission or deleteXML_permission or viewXML_permission %}
+        <div class="sub-panel col-12" style="background-color: #a7a7a7;">
+            <div class="panel-btn col-12">Istniejace pliki</div>
+            {% for file in existedFiles %}
+                <div class="col-12 panel-btn">
+                    <div class="row">
+                        <a href="#" class="col-8">{{ file.file_name }}</a>
+                        {% if deleteXML_permission %}
+                        <div class="col-1"><i class="fas fa-trash-alt text-danger" onclick='window.location.href="{% url 'delete_file' file.id %}"' style="cursor: pointer"></i></div>
+                        {% endif %}
+                        {% if viewXML_permission %}
+                            <div class="col-1"><i class="fas fa-eye text-white" onclick='window.location.href="{% url 'show' file.file.path %}"' style="cursor: pointer"></i></div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block templates %}
+    <div class="templates"></div>
+{% endblock %}
+
+{% block content %}
+    <div id="control-panel">
+        {% if createXML_permission %}
+            <i class="fas fa-plus-square file-manage" data-toggle="new"></i>
+        {% endif %}
+        {% if updateXML_permission or viewXML_permission %}
+            <input style=' width: 0.1px;height: 0.1px;opacity: 0;overflow: hidden;position: absolute;z-index: -1; font-size: 1.25em;font-weight: 700;color: white;background-color: black; display: inline-block;' type="file" class="btn btn-dark" id="file_open_input">
+            <i class="far fa-folder-open file-manage" data-toggle="open"></i>
+        {% endif %}
+        {% if createXML_permission or updateXML_permission %}
+            <i class="far fa-hdd file-manage" data-toggle="save_as"></i>
+            <div class="col-4 " id="change_dir_to_save" style="position: absolute; z-index: 999;"></div>
+        {% endif %}
+        {% if createXML_permission or updateXML_permission %}
+            <i class="far fa-save file-manage" style="display:none;" data-toggle="save"></i>
+        {% endif %}
+    </div>
+    <div id="file-name"></div>
+
+    <div id="manage-file"></div>
+
+{% endblock %}
+
+{% block script_onload %}
+    <script>
+        //hidden input with file name
+        function add_hidden_file_name_input() {
+            $('#file_name_hidden').remove(); //remove previous input
+            $('#file-name').text(''); //clear readable file_name
+            $('#control-panel').append('<input style="display:none;" id="file_name_hidden">');
+            $('#file_name_hidden').change(); //add change trigger to input hidden for work script 'onchange()'
+        }
+
+        function add_hidden_file_path() {
+            $('#file_path_hidden').remove();
+            $('#control-panel').append('<input style="display:none;" id="file_path_hidden">')
+        }
+
+        function load_file_name(file_name) {
+            $('#file_name_hidden').attr('value', file_name).change(); //add to hidden input with value of file_name
+            $('#file-name').text(file_name); //readable file_name
+        };
+
+        $('body').on('change', '#file_name_hidden', function () {
+            if($(this).val() === ''){ $(".file-manage[data-toggle='save']").hide() }
+            else{ $(".file-manage[data-toggle='save']").show() }
+        })
+    </script>
+
+    <script>
+        function clear_panel(callback) {
+            $('#code-panel').remove();
+            callback();
+        }
+
+        function clear_feedbacks() {
+            $('.feedbacks').html('');
+        }
+    </script>
+    <script>
+        function load_change_dir_template() {
+            $('#change_dir_to_save').load('/static/templates/xml_templates.html #changeDirTemplate');
+        }
+    </script>
+
+    <script>
+        Mustache.tags = ['<%', '%>'];
+        // backs_list  = [{'field_name': 'field name in str' , 'errors': ['error message in str', '...', '.....'] }];
+        function add_feedbacks_invalid(feedbacks_list){
+            clear_feedbacks();
+            get_template('/static/templates/validation_templates.html', '#invalidMessage', function (template) {
+                for (error=0; error<feedbacks_list.length; error++){
+                    var one_field = feedbacks_list[error];
+                    for (error_message=0; error_message<one_field.errors.length; error_message++){
+                        message = one_field.errors[error_message];
+                        rendered_data = {message:message};
+                        rendered_template = Mustache.render(template.html(), rendered_data);
+                        $('.feedbacks').each(function () {
+                            if ($(this).data('field_name') === one_field.field_name){
+                                $(this).append(rendered_template);
+                            }
+                        })
+                    }
+                }
+            });
+        }
+    </script>
+
+    <script>
+        //промежуточная функция которая отвечает за отслеживание нажатия кнокпи Save as
+        function save_as_file() {
+            $('body').on('click', '.file-manage', function () {
+                var create_file = false;
+                if ($(this).data('toggle') === 'save_as'){
+                    CodeEditor.save();
+                    var content = $('#code-area').val();
+                    load_change_dir_template();
+                    load_directories();
+                    change_abs_path();
+                    clear_feedbacks();
+                }
+            })
+        }
+        save_as_file()
+    </script>
+
+    <script>
+        $('body').on('click', '.file-manage', function () {
+            if($(this).data('toggle') === 'save'){
+                save_with_data($('#file_name_hidden').val(), $('#file_path_hidden').val())
+            }
+        })
+    </script>
+
+    <script>
+        function rewrite_file() {
+            $('body').on('click', '.file-manage', function () {
+                if($(this).data('toggle') === 'save'){
+
+                }
+            })
+        }
+    </script>
+
+    <!-- new file -->
+    <script>
+        function createNewFile(){
+            $('body').on('click', '.file-manage', function(){
+                if($(this).data('toggle') === 'new'){
+                    add_hidden_file_name_input();
+                    add_hidden_file_path();
+                    clear_panel(function(){
+                        var file_name = undefined;
+                        $('#manage-file').load('/static/templates/xml_templates.html #code-panel', function () {
+                            $('#code-panel').append('<textarea id="code-area"></textarea>');
+                            CodeEditor = CodeMirror.fromTextArea(document.getElementById('code-area'), {mode:'application/xml', styleActiveLine: true, lineNumbers:true});
+                        });
+                    });
+                }
+            });
+        }
+        createNewFile();
+    </script>
+
+    <script>
+        function openFile(){
+            $('body').on('click', '.file-manage', function(){
+                if ($(this).data('toggle') === 'open'){
+                    $('#file_open_input').show().trigger('click').hide();
+                    $('body').on('change', '#file_open_input', function () {
+                        add_hidden_file_name_input();
+                        add_hidden_file_path();
+                        clear_panel(function () {
+                            var file_name = undefined,
+                            data = new FormData();
+                            file1 = document.getElementById('file_open_input');
+                            data.append('file', file1.files[0]);
+                            data.append('open_file', true);
+                            data.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+                            $.ajax({
+                                url:'{% url "create_xml" %}',
+                                method:'POST',
+                                data:data,
+                                processData:false,
+                                contentType:false,
+                                success:function (data) {
+                                    $('#manage-file').load('/static/templates/xml_templates.html #code-panel', function () {
+                                    $('#code-panel').append('<textarea id="code-area">' + data.content + '</textarea>');
+                                    CodeEditor = CodeMirror.fromTextArea(document.getElementById('code-area'), {mode:'application/xml', styleActiveLine: true, lineNumbers:true});})
+                                },
+                                error:function () {
+                                    alert('error');
+                                }
+                            });
+                        })
+                    });
+                }
+            });
+        }
+        openFile();
+    </script>
+
+    <script>
+        $('body').on('click', '.div-path', function () {
+            path = $(this).parents('li').data('path');
+            load_directories(start_path=path);
+        });
+
+        $('body').on('keyup', '#find_abs_path', function () {
+            load_directories(start_path=$(this).val());
+        })
+    </script>
+{% endblock %}

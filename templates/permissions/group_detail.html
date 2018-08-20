@@ -1,0 +1,244 @@
+{% extends 'permissions/permission_group.html' %}
+
+{% block css %}
+    <style>
+        ul{
+            list-style: none;
+        }
+        #id_model_permissions{
+            padding: 0;
+            max-height: 10vw;
+            overflow: auto;
+        }
+        .user-row:nth-child(2n){
+            background-color: #ececec;
+        }
+        .permission-row:nth-child(2n){
+            background-color: #dadada;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div id="templates"></div>
+    <div class="col-12">
+        <div class="row">
+            <div class="col-6">
+                <div class="row">
+                    <div class="col-6"><h4>Nazwa grupy "{{ group.name }}"</h4></div>
+                    {% if updatePermissionGroup_permission %}
+                        <div class="col-1" onclick="add_permission_to_group({{ group.id }})"><i class="fas fa-plus text-success" style="font-size: 1.5vw"></i></div>
+                        <div class="col-1" onclick="load_username_form()"><i class="fas fa-user-plus text-success" style="font-size: 1.5vw"></i></div>
+                    {% endif %}
+                    {% if deletePermissionGroup_permission %}
+                        <div class="col-1"><i class="fas fa-trash-alt text-danger" style="font-size: 1.5vw"></i></div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-6" id="permissions" style="background-color: #ececec">
+                <div class="row" style=" background-color: #515151;color: white; padding-left: 1vw"><h5>Aktywne uprawnienia grupy</h5></div>
+                {% for permission in model_permissions %}
+                    <div class="row permission-row" data-permission_id="{{ permission.id }}">
+                        <div class="col-10">{{ permission.description }}</div>
+                        <div class="col-1"><i class="fas fa-trash-alt text-danger" style="cursor: pointer" data-toggle="delete_permission_from_group"></i></div>
+                        <div class="col-1"><i class="far fa-edit" style="cursor: pointer"></i></div>
+                    </div>
+                {% endfor %}
+
+            </div>
+
+            <div class="col-6" id="users" style="background-color: #dadada">
+                <div class="row" style=" background-color: #515151;color: white; padding-left: 1vw"><h5>Uzytkownicy</h5></div>
+                {% for user in users %}
+                    <div class="row user-row" data-user_profile_id="{{ user.id }}">
+                        <div class="col-10">{{ user.username }}</div>
+                        <div class="col-1"><i class="fas fa-trash-alt text-danger" data-toggle='delete_user_profile_from_group' style="cursor: pointer"></i></div>
+                    </div>
+                {% endfor %}
+            </div>
+
+        </div>
+
+        <div class="row" id="group_manage">
+            <form class="add_permission" novalidate></form>
+            <div class="row">
+                <div class="col-2"><small id="permission_count"></small></div>
+            </div>
+
+            <ul id="added-permissions" style="list-style: none; padding: 0;" class="col-12"></ul>
+            <button class="btn" style="display: none;" onclick="update_model_permissions()" data-toggle="update_model_permissions">Save</button>
+        </div>
+
+    </div>
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    <script>
+            function add_permission_to_group(group_id) {
+                $.ajax({
+                    url:'{% url "group_detail_functions" %}',
+                    dataType:'json',
+                    method:"POST",
+                    data:{'csrfmiddlewaretoken':'{{ csrf_token }}', 'group_id':group_id, 'function':'add_permission_to_group'},
+                    success:function (data) {
+                        $('.add_permission').append(data.form);
+                    },
+                    error:function(){alert('error')}
+                })
+            }
+    </script>
+{% endblock %}
+
+{% block script_onload %}
+    <script>
+        $(document).ready(function () {
+                Mustache.tags = ['<%', '%>'];
+                $('#templates').load('/static/templates/validation_templates.html');
+
+                //permission count controller
+                $('body').on('click', ['.permission_models', '.reset-permission'], function () {
+                    var itter = 0;
+                    $('.permission_models:checked').each(function () {
+                        itter+=1;});
+                    $('#permission_count').text(itter);
+                });
+
+                //add model permission
+                $('body').on('click', '.permission_models:not(#id_model_permissions)', function(){
+                    $('#added-permissions li').remove();
+                    var template = $('#addModelPermission').html();
+                    $('.permission_models:checked').each(function () {
+                        rendered_template = Mustache.render(template, {value:$(this).val(), description:$(this).parents('label').text()});
+                        $('#added-permissions').prepend(rendered_template);
+                    });
+                });
+
+                $('body').on('click', '.reset-permission', function () {
+                    var value = $(this).parents('li').data('value');
+                    $(this).parents('li').remove();
+                    $('input[value="' + value + '"]').prop('checked', false);
+                });
+
+                $('body').on('click', '.permission_models:not(#id_model_permissions)', function () {
+                    if( $('.permission_models:checked').length > 0 ){ $('button[data-toggle="update_model_permissions"]').show() }
+                    else { $('button[data-toggle="update_model_permissions"]').hide() }
+                });
+        });
+    </script>
+
+    <script>
+        function update_model_permissions(){
+            var added_permissions = [];
+            $('#added-permissions li').each(function () {
+                added_permissions.push($(this).data('value'))
+            });
+            $.ajax({
+                url:'{% url "group_detail_functions" %}',
+                method:'post',
+                dataType:'json',
+                data:{'csrfmiddlewaretoken':'{{ csrf_token }}', 'permissions':added_permissions.join(','), 'function': 'update_group_permissions', 'group_id':'{{ group.id }}'},
+                success:function (data) {
+                    window.location.reload();
+                },
+                error:function () {
+                    alert('error')
+                }
+            })
+        }
+    </script>
+
+    <script>
+        Mustache.tags = ['<%', '%>'];
+        function load_username_form() {
+            get_template('/static/templates/permission_templates.html', '#SearchUsernameForm', function (template) {
+                $('#group_manage').append(template.html());
+            })
+        }
+
+        $('body').on('keyup', '#username', function () {
+            var user_name = $('#username').val();
+            $.ajax({
+                url:'{% url "group_detail_functions" %}',
+                method:'POST',
+                dataType:'json',
+                data:{ 'csrfmiddlewaretoken':'{{ csrf_token }}', 'searched_username':user_name, 'filter':true, 'function':'user_list', 'group_id':'{{ group.id }}' },
+                success:function (data) {
+                    $('#finded_username_list').find('.one_user').remove();
+                    get_template('/static/templates/permission_templates.html', '#OneUserTemplate', function (template) {
+                        for(user=0; user<data.users.length; user++){
+                            rendered_data = {'username':data.users[user].username, 'user_id':data.users[user].user_id};
+                            rendered_template = Mustache.render(template.html(), rendered_data);
+                            $('#finded_username_list').append(rendered_template);
+                        }
+                    });
+                },
+                error:function () {alert('error')}
+            })
+        });
+
+        function add_to_group(user_id, group_id='{{ group.id }}') {
+            $.ajax({
+                url:'{% url "group_detail_functions" %}',
+                method:'POST',
+                dataType:'json',
+                data:{"csrfmiddlewaretoken":"{{ csrf_token }}", 'user_id':user_id, 'group_id':group_id, 'function':'add_user_to_group'},
+                success:function (data) {alert('Uzytkownik '+data.username+ ' zostal dodany do grupy '+data.group)},
+                error:function () {alert('error')}
+            })
+        }
+    </script>
+
+    <script>
+        function delete_permission_from_group(permission_id, group_id) {
+            $.ajax({
+                url:"{% url 'group_detail_functions' %}",
+                method:'POST',
+                dataType:'json',
+                data:{'csrfmiddlewaretoken':'{{ csrf_token }}', 'permission_id':permission_id, 'group_id':group_id, 'function':'delete_permission_from_group'},
+                success:function (data) {
+                    remove_permission_element(permission_id);
+                },
+                error:function () {
+                    alert('error');
+                }
+            })
+        }
+
+        function remove_permission_element(permission_id){
+            $('.permission-row[data-permission_id="' + permission_id + '"]').slideUp(function () {$(this).remove()});
+        }
+
+        $('body').on('click', '[data-toggle="delete_permission_from_group"]', function () {
+            delete_permission_from_group($(this).parents('.permission-row').data('permission_id'), {{ group.id }});
+        })
+    </script>
+
+    <script>
+        function delete_user_profile_from_group(user_profile_id, group_id) {
+            $.ajax({
+                url:'{% url "group_detail_functions" %}',
+                method:'POST',
+                dataType:'json',
+                data:{'csrfmiddlewaretoken':'{{ csrf_token }}', 'user_profile_id':user_profile_id, 'group_id':group_id, 'function':'delete_user_profile_from_group'},
+                success:function (data) {
+                    remove_user_profile_element(user_profile_id);
+                },
+                error:function () { alert('error') }
+            })
+        }
+
+        function remove_user_profile_element(user_profile_id){
+            $('.user-row[data-user_profile_id="' + user_profile_id + '"]').slideUp(function () { $(this).remove() })
+        }
+
+        $('body').on('click', '[data-toggle="delete_user_profile_from_group"]', function () {
+            delete_user_profile_from_group( $(this).parents('.user-row').data('user_profile_id'), {{ group.id }} )
+        })
+    </script>
+
+
+{% endblock %}

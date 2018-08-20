@@ -1,0 +1,156 @@
+{% extends 'main_template.html' %}
+{% load static %}
+
+{% block css %}
+    <style>
+        .permission_models{
+            list-style: none;
+            max-height: 10vw;
+            overflow: auto;
+            padding: 0;
+        }
+    </style>
+{% endblock %}
+
+{% block js %}<script src="{% static 'js/get_template.js' %}"></script>{% endblock %}
+
+{% block panel %}
+    {% if updatePermissionGroup_permission or deletePermissionGroup_permission or createPermissionGroup_permission or viewPermissionGroup_permission %}
+        <div class="sub-panel col-12" style="background-color: #a7a7a7;">
+            <div class="panel-btn col-12">Istniejace uprawnienia</div>
+                {% for group in activeGroups %}
+                    <div class="col-12 panel-btn">
+                        <div class="row">
+                            <a href="#" class="col-8">{{ group.name }}</a>
+                            {% if deletePermissionGroup_permission %}
+                            <div class="col-1"><i class="fas fa-trash-alt text-danger" style="cursor: pointer"></i></div>
+                            {% endif %}
+                            {% if updatePermissionGroup_permission or createPermissionGroup_permission or deletePermissionGroup_permission %}
+                                <div class="col-1" onclick="window.location.href='{% url "group_detail" group.id %}'"><i class="far fa-edit text-white" style="cursor: pointer"></i></div>
+                            {% endif %}
+                            {% if viewPermissionGroup_permission or createPermissionGroup_permission or updatePermissionGroup_permission or deletePermissionGroup_permission %}
+                                <div class="col-1"><i class="fas fa-eye text-white" style="cursor: pointer"></i></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+
+    <div id="templates"></div>
+    {% if createPermissionGroup_permission %}
+        <div class="col-12" style="background-color: #f9f9f9; margin-top: 2vw">
+        <!-- create permission group  -->
+            <div class="row justify-content-center">
+                <div class="col-12 text-center">
+                    <h2>Utworzyć uprawnienie</h2>
+                </div>
+                <div class="col-12 col-md-12">
+                    <form id="user_registration" novalidate>{% csrf_token %}
+                        <div class="form-row">
+                          <div class="col-12 col-md-12" data-field_name="{{ createPermissionGroupForm.name.html_name }}">
+                              <div class="col-12"><label for="{{ createPermissionGroupForm.name.html_name }}">{{ createPermissionGroupForm.name.label }}</label></div>
+                              <div class="col-6">{{ createPermissionGroupForm.name }}</div>
+                              <div class="col-12">
+                                  <div class="feedbacks"></div>
+                              </div>
+                          </div>
+                        </div>
+                        <div class="form-row">
+                          <div class="col-12 col-md-12" data-field_name="{{ createPermissionGroupForm.model_permissions.html_name }}">
+                              <div class="col-12"><label for="{{ createPermissionGroupForm.model_permissions.html_name }}">{{ createPermissionGroupForm.model_permissions.label }}</label></div>
+                              <div class="col-12">{{ createPermissionGroupForm.model_permissions }}</div>
+                              <div class="col-12">
+                                  <div class="feedbacks"></div>
+                              </div>
+                          </div>
+                        </div>
+                        <div class="form-row justify-content-left">
+                            <div class="col-3">
+                                <button type="submit" class="btn btn-success btn-block">Dodac</button>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="col-12 col-md-12">
+                        <div class="row">
+                            <div class="col-10">Wybrane uprawnienia</div>
+                            <div class="col-2"><small id="permission_count"></small></div>
+                        </div>
+                        <ul id="added-permissions" style="list-style: none; padding: 0;" class="col-12"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block script_onload %}
+    <script>
+    Mustache.tags = ['<%', '%>'];
+    $('#templates').load('/static/templates/validation_templates.html');
+    $(['.invalid-feddback', '.valid-feedback']).remove();
+
+    function remove_feedbacks(){
+            $('.feedback').remove();
+            $('input').removeClass(['is-valid', 'is-invalid']);
+        }
+
+    //feedbacks_list  = [{'field_name': 'field name in str', 'message': 'error message in str'}, {'field_name':'...', 'message':'...'}]
+    function add_feedbacks(feedbacks_list, template){
+        for (error=0; error<feedbacks_list.length; error++){
+            var one_field = feedbacks_list[error];
+            rendered_data = {message:one_field.message};
+            rendered_template = Mustache.render(template, rendered_data);
+            $('div[data-field_name="' + one_field.field_name + '"]').find('.feedbacks').append(rendered_template);
+        }
+    }
+
+    $('body').on('click', 'button[type="submit"]', function (e) {
+        e.preventDefault();
+        remove_feedbacks();
+        var name=$('#id_name').val(),
+            permissions = new Array(),
+            invalid_template = $('#invalidMessage').html();
+        $('.permission_models:checked').each(function () {permissions.push($(this).val());});
+
+        $.ajax({
+            url:'{% url "create_permission_group" %}',
+            dataType:'json',
+            method:'post',
+            data:{'name':name, permissions:JSON.stringify(permissions), 'csrfmiddlewaretoken':'{{ csrf_token }}'},
+            success:function (data) {
+                if (data.success){alert('success'); window.location.href='{% url "create_permission_group" %}';}
+                else {add_feedbacks(data.errors, invalid_template)}
+            },
+            error:function () {alert('server error');}
+        });
+    });
+
+    //permission count controller
+    $('body').on('click', ['.permission_models', '.reset-permission'], function () {
+        var itter = 0;
+        $('.permission_models:checked').each(function () {
+            itter+=1;});
+        $('#permission_count').text(itter);
+    });
+
+    //add model permission
+    $('body').on('click', '.permission_models:not(#id_model_permissions)', function(){
+        $('#added-permissions li').remove();
+        var template = $('#addModelPermission').html();
+        $('.permission_models:checked').each(function () {
+            rendered_template = Mustache.render(template, {value:$(this).val(), description:$(this).parents('label').text()});
+            $('#added-permissions').prepend(rendered_template);
+        });
+    });
+
+    $('body').on('click', '.reset-permission', function () {
+        var value = $(this).parents('li').data('value');
+        $(this).parents('li').remove();
+        $('input[value="' + value + '"]').prop('checked', false);
+    });
+    </script>
+{% endblock %}
