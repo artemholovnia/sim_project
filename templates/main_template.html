@@ -72,6 +72,9 @@
                 {% if xml_permission%}
                     <div class="col-12 panel-btn"><a href="{% url 'create_xml' %}" class="btn-block">XML konfiguracje</a></div>
                 {% endif %}
+                <div class="col-12 panel-btn"><a href="{% url 'create_sip_user' %}" class="btn-block">Uzytkownik</a></div>
+                <div class="col-12 panel-btn"><a href="{% url 'create_bridge' %}" class="btn-block">Mostki</a></div>
+                <div class="col-12 panel-btn"><a href="{% url 'channels_controller' %}" class="btn-block">Kanaly</a></div>
                 {% block panel %}{% endblock %}
             </div>
         </div>

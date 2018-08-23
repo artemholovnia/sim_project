@@ -64,7 +64,7 @@ class UserDetail(DetailView):
 
 #user registration
 from .forms import UserRegistrationForm, UserProfileImageForm
-from permission.check_permission import  Permission as UserPermissionCheck
+from permission.check_permission import Permission as UserPermissionCheck
 class UserRegistrationView(TemplateView):
     template_name = 'user_auth/user_registration.html'
     model_name = 'user'

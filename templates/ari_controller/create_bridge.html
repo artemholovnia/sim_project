@@ -1,0 +1,203 @@
+{% extends 'main_template.html' %}
+{% load staticfiles %}
+{% block content %}
+<form action="{% url 'create_bridge' %}" method="POST" novalidate id="create_bridge_form">{% csrf_token %}
+    <div class="row col-12">
+
+        <div class="col-6">
+            <div class="row">
+                <div class="col-12"><h3 class="">Rejestracja mostku</h3></div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="row form-group">
+                        <div class="col-4">{% if create_bridge_form.appdata.field.required == True %}<span style="color: red;">*</span>{% endif %}<label class="col-form-label">{{create_bridge_form.appdata.label}}</label></div>
+                        <div class="col-6">{{create_bridge_form.appdata}}</div>
+                    </div>
+                    <div class="row form-group">
+                        <div class="col-4">{% if create_bridge_form.app.field.required == True %}<span style="color: red;">*</span>{% endif %}<label class="col-form-label">{{create_bridge_form.app.label}}</label></div>
+                        <div class="col-6">{{create_bridge_form.app}}</div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="row form-group">
+                        <div class="col-4">{% if create_bridge_form.priority.field.required == True %}<span style="color: red;">*</span>{% endif %}<label class="col-form-label">{{create_bridge_form.priority.label}}</label></div>
+                        <div class="col-6">{{create_bridge_form.priority}}</div>
+                    </div>
+                    <div class="row form-group">
+                        <div class="col-4">{% if create_bridge_form.exten.field.required == True %}<span style="color: red;">*</span>{% endif %}<label class="col-form-label">{{create_bridge_form.exten.label}}</label></div>
+                        <div class="col-6">{{create_bridge_form.exten}}</div>
+                    </div>
+                    <div class="row form-group">
+                        <div class="col-4">{% if create_bridge_form.context.field.required == True %}<span style="color: red;">*</span>{% endif %}<label class="col-form-label">{{create_bridge_form.context.label}}</label></div>
+                        <div class="col-6">{{create_bridge_form.context}}</div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="row form-group">
+                        <div class="col-4"></div><div class="col-2"><button type="submit" class="btn btn-success">Zapisz</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6">
+            <div class="row">
+                <div class="col-12"><h3 class="">Istniejace mostki</h3></div>
+            </div>
+            <div class="row" id="bridges">
+                    <table class="table" id="bridges_list">
+                          <thead>
+                            <tr>
+                              <th scope="col">Kontekst</th>
+                              <th scope="col">ID mostku</th>
+                              <th scope="col">Nazwa (czytelna)</th>
+                              <th scope="col">Aplikacja</th>
+                              <th scope="col">Prioritet</th>
+                              <th scope="col"></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                          </tbody>
+                    </table>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block script_onload %}
+    <script src="{% static 'js/get_template.js' %}"></script>
+    <script>
+        function load_spiner(to) {
+            $('.spinner').remove();
+            to.append("<div class='col-12 text-center'><img class='spinner' src='{% static "images/spinner.gif" %}'></div>")
+        }
+        load_spiner($('#bridges'));
+    </script>
+
+    <script type="text/bridgeTemplate" id="bridgeTemplate">
+        <tr id="<%exten%>" class="bridge">
+              <td><%context%></td>
+              <td><%exten%></td>
+              <td><%appdata%></td>
+              <td><%app%></td>
+              <td><%priority%></td>
+              <td><i class="fas fa-trash-alt text-danger" style="font-size: 1vw" data-trigger="delete_bridge" data-bridge_id="<%exten%>" id="delete_bridge"></i></td>
+        </tr>
+    </script>
+
+    <script>
+        function clear_form(form) {
+            form.trigger('reset');
+        }
+    </script>
+
+    <script>
+        Mustache.tags=['<%', '%>'];
+        function generate_error_message(to, error_message) {
+            get_template('/static/templates/controller_templates.html', '#errorMessage', function (template) {
+                rendered_template = Mustache.render(template.html(), {error_message:error_message});
+                $('.error_message').remove();
+                $(to).prepend(rendered_template);
+            })
+        }
+    </script>
+    
+    <script>
+        $(document).ready(function () {
+            $('body').on('submit', '#create_bridge_form', function (form) {
+                form.preventDefault();
+                var form_data = {};
+                $('#create_bridge_form').find('input').each(function () {
+                    if($(this).val().length !== 0){ form_data[$(this).attr('name')]=$(this).val() }
+                });
+                form_data['function']='create_bridge';
+                $.ajax({
+                    url:'{% url "create_bridge" %}',
+                    dataType:'json',
+                    method:'post',
+                    data:form_data,
+                    success:function (data) { alert(data.message); get_active_bridges(); clear_form($('create_bridge_form')) },
+                    error:function (){alert('error')}
+                })
+
+            });
+        })
+    </script>
+
+    <script>
+        function get_active_bridges(){
+            $.ajax({
+                url:'{% url "create_bridge" %}',
+                dataType:'json',
+                method:'post',
+                data:{'csrfmiddlewaretoken':'{{ csrf_token }}', 'function':'get_active_bridges'},
+                success:function (data) {
+                    if(data.success === false){
+                        load_spiner($('#bridges'));
+                        $('.bridge').remove();
+                        if(data.code==='databaseConnectionError'){
+                            generate_error_message('#bridges', data.message);}
+                    }
+                    else{
+                        clearInterval();
+                        $('.spinner').remove();
+                        $('.error_message').remove();
+                        parsed_data=JSON.parse(data);
+                        generate_bridges_content(parsed_data.bridges_list)}
+                },
+                error:function () {
+                    load_spiner($('#bridges'));
+                }
+            })
+        }
+
+        $(document).ready(function () {
+            get_active_bridges();
+            setInterval(function () { get_active_bridges(); }, 5000);
+        });
+
+
+        //$(document).ready(function () {
+        //    get_active_bridges();
+        //});
+    </script>
+
+    <script>
+        Mustache.tags=['<%', '%>'];
+        function generate_bridges_content(data){
+            $('.bridge').remove();
+            template = $('#bridgeTemplate').html();
+            for(bridge=0; bridge<data.length; bridge++){
+                bridge_data = data[bridge];
+                rendered_data = {
+                    context:bridge_data.context,
+                    exten:bridge_data.exten,
+                    priority:bridge_data.priority,
+                    app:bridge_data.app,
+                    appdata:bridge_data.appdata,
+                };
+                rendered_template = Mustache.render(template, rendered_data);
+                $('#bridges_list').find('tbody').prepend(rendered_template);
+            }
+        }
+    </script>
+
+    <script>
+    $(document).ready(function () {
+        $('body').on('click', '#delete_bridge', function () {
+            var bridge_id=$(this).data('bridge_id'),
+                form_data={'bridge_id':bridge_id, 'function':'delete_bridge', 'csrfmiddlewaretoken':'{{ csrf_token }}'};
+            $.ajax({
+                url:'{% url "create_bridge" %}',
+                method:'post',
+                dataType:'json',
+                data:form_data,
+                success:function(data){ alert(data.message); get_active_bridges(); },
+                error:function(){ alert('error') }
+            })
+        })
+    });
+    </script>
+{% endblock %}

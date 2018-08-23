@@ -1,0 +1,85 @@
+{% extends 'main_template.html' %}
+{% block content %}
+<form method="POST" action="{% url 'create_sip_user' %}" novalidate>{%csrf_token%}
+    <div class="row">
+        <div class="col-12">
+            <div class="row">
+                <div class="col-2"><label>{{create_sip_user_form.name.label}}</label></div>
+                <div class="col-2">{{create_sip_user_form.name}}</div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="row">
+                <div class="col-2"><label>{{create_sip_user_form.username.label}}</label></div>
+                <div class="col-2">{{create_sip_user_form.username}}</div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="row">
+                <div class="col-2"><label>{{create_sip_user_form.secret.label}}</label></div>
+                <div class="col-2">{{create_sip_user_form.secret}}</div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-4">
+                <div class="col-6">{{create_sip_user_form.nat.label}}</div>
+                <div class="col-6">{{create_sip_user_form.nat}}</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <div class="col-6">{{create_sip_user_form.type.label}}</div>
+                <div class="col-6">{{create_sip_user_form.type}}</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <div class="col-6">{{create_sip_user_form.qualify.label}}</div>
+                <div class="col-6">{{create_sip_user_form.qualify}}</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <div class="col-6">{{create_sip_user_form.allowoverlap.label}}</div>
+                <div class="col-6">{{create_sip_user_form.allowoverlap}}</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <div class="col-6">{{create_sip_user_form.allowsubscribe.label}}</div>
+                <div class="col-6">{{create_sip_user_form.allowsubscribe}}</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <div class="col-6">{{create_sip_user_form.allowtransfer.label}}</div>
+                <div class="col-6">{{create_sip_user_form.allowtransfer}}</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <div class="col-6">{{create_sip_user_form.ignorespdversion.label}}</div>
+                <div class="col-6">{{create_sip_user_form.ignorespdversion}}</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <div class="col-6">{{create_sip_user_form.videosupport.label}}</div>
+                <div class="col-6">{{create_sip_user_form.videosupport}}</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <div class="col-6">{{create_sip_user_form.rfe2833compensate.label}}</div>
+                <div class="col-6">{{create_sip_user_form.rfe2833compensate}}</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="row">
+                <div class="col-2"></div><div class="col-2"><button type="submit" class="btn btn-success">Zapisz</button></div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
