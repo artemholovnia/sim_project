@@ -24,13 +24,14 @@ class CreateSipUserView(MainInfo):
             if key in form_fields and len(user_data.get(key)) != 0:
                 form_data.update({key:user_data.get(key)})
                 # setattr(user_sip_form, key, user_data.get(key))
-                print('Переменной {field} присвоено значение {value}'.format(field=key, value=user_data.get(key)), len(user_data.get(key)))
-        print(form_data)
+                #print('Переменной {field} присвоено значение {value}'.format(field=key, value=user_data.get(key)), len(user_data.get(key)))
+        #print(form_data)
         user_form = CreateSipUserForm(form_data)
         if user_form.is_valid():
             user_form.save_user(form_data)
         else:
-            print(user_form.errors)
+            pass
+            #print(user_form.errors)
         return redirect(reverse('start_page'))
 
     def get_context_data(self, **kwargs):
