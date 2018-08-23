@@ -26,7 +26,7 @@ class CreateSipUserForm(Form):
     allowtransfer=CharField(label='allowtransfer', required=False, widget=Select(choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
     ignoresdpversion=CharField(label='ignorespdversion', required=False, widget=Select(choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
     videosupport=CharField(label='videosupport', required=False, widget=Select(choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
-    rfe2833compensate=CharField(label='rfe2833compensate', required=False, widget=Select(choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
+    rfc2833compensate=CharField(label='rfc2833compensate', required=False, widget=Select(choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
 
     def __init__(self, *args, **kwargs):
         super(CreateSipUserForm, self).__init__(*args, **kwargs)
@@ -96,10 +96,10 @@ class SipUserModel(Model):
     qualify=CharField(max_length=3, null=True, default=None)
     allowoverlap=CharField(max_length=3, null=False, default='yes')
     allowsubscribe=CharField(max_length=3, null=False, default='yes')
-    allotransfer=CharField(max_length=3, null=False, default='yes')
+    allowtransfer=CharField(max_length=3, null=False, default='yes')
     ignoresdpversion=CharField(max_length=3, null=False, default='no')
     videosupport=CharField(max_length=5, null=False, default='no')
-    rfe2833compensate=CharField(max_length=3, null=False, default='yes')
+    rfc2833compensate=CharField(max_length=3, null=False, default='yes')
 
     fullcontact=CharField(max_length=80, default='')
     ipaddr=CharField(max_length=15, default='')
