@@ -1,4 +1,4 @@
-from django.forms import Form, CharField, IntegerField, Select, TextInput, NumberInput
+from django.forms import Form, CharField, IntegerField, Select, TextInput, NumberInput, PasswordInput
 from django.utils.deconstruct import deconstructible
 from django.core.validators import BaseValidator, RegexValidator
 from django.core.exceptions import ValidationError
@@ -15,18 +15,18 @@ from django.core.exceptions import ValidationError
 
 from peewee import DoesNotExist as DoesNotExistSQL
 class CreateSipUserForm(Form):
-    name=CharField(max_length=80, min_length=1, required=True, label='Nazwa uzytkownika')
-    username=CharField(max_length=80, required=False, label='Username')
-    secret=CharField(max_length=80, min_length=4, required=True, label='Haslo')
-    nat=CharField(label='nat', required=False, widget=Select(choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
-    type=CharField(label='type', required=False, widget=Select(choices=( (None, '---'), ('friend', 'friend'), ('user', 'user'), ('peer', 'peer') )))
-    qualify=CharField(label='qualify', required=False, widget=Select(choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
-    allowoverlap=CharField(label='allowoverlap', required=False, widget=Select(choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
-    allowsubscribe=CharField(label='allowsunscrive', required=False, widget=Select(choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
-    allowtransfer=CharField(label='allowtransfer', required=False, widget=Select(choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
-    ignoresdpversion=CharField(label='ignorespdversion', required=False, widget=Select(choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
-    videosupport=CharField(label='videosupport', required=False, widget=Select(choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
-    rfc2833compensate=CharField(label='rfc2833compensate', required=False, widget=Select(choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
+    name=CharField(max_length=80, min_length=1, required=True, label='Nazwa uzytkownika', widget=TextInput(attrs={'class':'form-control', 'autocomplete':'no'}))
+    username=CharField(max_length=80, required=False, label='Username', widget=TextInput(attrs={'class':'form-control', 'autocomplete':'no'}))
+    secret=CharField(max_length=80, min_length=4, required=True, label='Haslo', widget=PasswordInput(attrs={'class':'form-control', 'autocomplete':'no'}))
+    nat=CharField(label='nat', required=False, widget=Select(attrs={'class':'form-control'}, choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') )))
+    type=CharField(label='type', required=False, widget=Select(attrs={'class':'form-control'}, choices=( (None, '---'), ('friend', 'friend'), ('user', 'user'), ('peer', 'peer') )))
+    qualify=CharField(label='qualify', required=False, widget=Select(attrs={'class':'form-control'}, choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
+    allowoverlap=CharField(label='allowoverlap', required=False, widget=Select(attrs={'class':'form-control'}, choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
+    allowsubscribe=CharField(label='allowsunscrive', required=False, widget=Select(attrs={'class':'form-control'}, choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
+    allowtransfer=CharField(label='allowtransfer', required=False, widget=Select(attrs={'class':'form-control'}, choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
+    ignoresdpversion=CharField(label='ignorespdversion', required=False, widget=Select(attrs={'class':'form-control'}, choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
+    videosupport=CharField(label='videosupport', required=False, widget=Select(attrs={'class':'form-control'}, choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
+    rfc2833compensate=CharField(label='rfc2833compensate', required=False, widget=Select(attrs={'class':'form-control'}, choices=( (None, '---'), ('yes', 'yes'), ('no', 'no') ) ))
 
     def __init__(self, *args, **kwargs):
         super(CreateSipUserForm, self).__init__(*args, **kwargs)

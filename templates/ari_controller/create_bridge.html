@@ -46,7 +46,7 @@
                 <div class="col-12"><h3 class="">Istniejace mostki</h3></div>
             </div>
             <div class="row" id="bridges">
-                    <table class="table" id="bridges_list">
+                    <table class="table table-striped table-bordered" id="bridges_list">
                           <thead>
                             <tr>
                               <th scope="col">Kontekst</th>
@@ -83,7 +83,7 @@
               <td><%appdata%></td>
               <td><%app%></td>
               <td><%priority%></td>
-              <td><i class="fas fa-trash-alt text-danger" style="font-size: 1vw" data-trigger="delete_bridge" data-bridge_id="<%exten%>" id="delete_bridge"></i></td>
+              <td><i class="fas fa-trash-alt text-danger" style="font-size: 1vw" data-trigger="delete_user" data-bridge_id="<%name%>" id="delete_user"></i></td>
         </tr>
     </script>
 
@@ -141,7 +141,7 @@
                             generate_error_message('#bridges', data.message);}
                     }
                     else{
-                        clearInterval();
+                        clearInterval(bridges_interval);
                         $('.spinner').remove();
                         $('.error_message').remove();
                         parsed_data=JSON.parse(data);
@@ -155,7 +155,7 @@
 
         $(document).ready(function () {
             get_active_bridges();
-            setInterval(function () { get_active_bridges(); }, 5000);
+            bridges_interval = setInterval(function () { get_active_bridges(); }, 5000);
         });
 
 

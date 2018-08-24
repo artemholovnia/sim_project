@@ -12,11 +12,12 @@ class ChannelsController(MainInfo):
     template_name = 'ari_controller/channels_controller.html'
 
 from .forms import CreateSipUserForm
+from .forms import SipUserModel
 class CreateSipUserView(MainInfo):
     template_name = 'ari_controller/create_sip_user.html'
 
     def post(self, *args, **kwargs):
-        user_data = self.request.POST
+        '''user_data = self.request.POST
         form_fields = [field for field in CreateSipUserForm().fields]
         form_data = {}
         #{'name':user_data.get('name'), 'username':user_data.get('username'), 'secret':user_data.get('secret')}
@@ -31,7 +32,24 @@ class CreateSipUserView(MainInfo):
             user_form.save_user(form_data)
         else:
             pass
-            #print(user_form.errors)
+            #print(user_form.errors)'''
+        if self.request.is_ajax():
+            if self.request.POST.get('function') == 'get_active_users':
+                users_list = []
+                try:
+                    model = SipUserModel()
+                    fields = [field for field in SipUserModel()._meta.fields]
+                    fields.remove('id'), fields.remove('secret')
+                    active_users = model.select()
+                    for user in active_users:
+                        user_dict = {}
+                        for field in fields:
+                            if hasattr(user, field):
+                                user_dict.update({field:getattr(user, field)})
+                        users_list.append(user_dict)
+                    return JsonResponse(data=json.dumps({'success':True, 'users_list':users_list}), safe=False)
+                except OperationalErrorDatabase:
+                    return JsonResponse(data={'success':False, 'code':"databaseConnectionError", 'message':'Wystapil blad polaczenia do bazy dannych'})
         return redirect(reverse('start_page'))
 
     def get_context_data(self, **kwargs):

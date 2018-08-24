@@ -1,85 +1,180 @@
 {% extends 'main_template.html' %}
+{% load staticfiles %}
 {% block content %}
 <form method="POST" action="{% url 'create_sip_user' %}" novalidate>{%csrf_token%}
-    <div class="row">
-        <div class="col-12">
-            <div class="row">
-                <div class="col-2"><label>{{create_sip_user_form.name.label}}</label></div>
-                <div class="col-2">{{create_sip_user_form.name}}</div>
+    <div class="row col-12">
+        <div class="col-6">
+            <div class="col-12"><h3 class="">Rejestracja uzytkownika</h3></div>
+            <div class="col-12 form-group">
+                <div class="row">
+                    <div class="col-4">{% if create_sip_user_form.name.field.required == True %}<span style="color: red;">*</span>{% endif %}<label>{{create_sip_user_form.name.label}}</label></div>
+                    <div class="col-6">{{create_sip_user_form.name}}</div>
+                </div>
             </div>
-        </div>
-        <div class="col-12">
-            <div class="row">
-                <div class="col-2"><label>{{create_sip_user_form.username.label}}</label></div>
-                <div class="col-2">{{create_sip_user_form.username}}</div>
+            <div class="col-12 form-group">
+                <div class="row">
+                    <div class="col-4">{% if create_sip_user_form.username.field.required == True %}<span style="color: red;">*</span>{% endif %}<label>{{create_sip_user_form.username.label}}
+                        <br>
+                        <small>Domyslnie taki samy jak 'Nazwa'</small>
+                    </label></div>
+                    <div class="col-6">{{create_sip_user_form.username}}</div>
+                </div>
             </div>
-        </div>
-        <div class="col-12">
+            <div class="col-12 form-group">
+                <div class="row">
+                    <div class="col-4">{% if create_sip_user_form.secret.field.required == True %}<span style="color: red;">*</span>{% endif %}<label>{{create_sip_user_form.secret.label}}</label></div>
+                    <div class="col-6">{{create_sip_user_form.secret}}</div>
+                </div>
+            </div>
+
             <div class="row">
-                <div class="col-2"><label>{{create_sip_user_form.secret.label}}</label></div>
-                <div class="col-2">{{create_sip_user_form.secret}}</div>
+                <div class="col-4 form-group">
+                    <div class="col-6">{% if create_sip_user_form.nat.field.required == True %}<span style="color: red;">*</span>{% endif %}<label>{{create_sip_user_form.nat.label}}</label></div>
+                    <div class="col-6">{{create_sip_user_form.nat}}</div>
+                </div>
+                <div class="col-4 form-group">
+                    <div class="col-6">{% if create_sip_user_form.type.field.required == True %}<span style="color: red;">*</span>{% endif %}<label>{{create_sip_user_form.type.label}}</label></div>
+                    <div class="col-6">{{create_sip_user_form.type}}</div>
+                </div>
+                <div class="col-4 form-group">
+                    <div class="col-6">{% if create_sip_user_form.qualify.field.required == True %}<span style="color: red;">*</span>{% endif %}<label>{{create_sip_user_form.qualify.label}}</label></div>
+                    <div class="col-6">{{create_sip_user_form.qualify}}</div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-4 form-group">
+                    <div class="col-6">{% if create_sip_user_form.allowoverlap.field.required == True %}<span style="color: red;">*</span>{% endif %}<label>{{create_sip_user_form.allowoverlap.label}}</label></div>
+                    <div class="col-6">{{create_sip_user_form.allowoverlap}}</div>
+                </div>
+                <div class="col-4 form-group">
+                    <div class="col-6">{% if create_sip_user_form.allowsubscribe.field.required == True %}<span style="color: red;">*</span>{% endif %}<label>{{create_sip_user_form.allowsubscribe.label}}</label></div>
+                    <div class="col-6">{{create_sip_user_form.allowsubscribe}}</div>
+                </div>
+                <div class="col-4 form-group">
+                    <div class="col-6">{% if create_sip_user_form.allowtransfer.field.required == True %}<span style="color: red;">*</span>{% endif %}<label>{{create_sip_user_form.allowtransfer.label}}</label></div>
+                    <div class="col-6">{{create_sip_user_form.allowtransfer}}</div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-4 form-group">
+                    <div class="col-6">{% if create_sip_user_form.ignoresdpversion.field.required == True %}<span style="color: red;">*</span>{% endif %}<label>{{create_sip_user_form.ignoresdpversion.label}}</label></div>
+                    <div class="col-6">{{create_sip_user_form.ignoresdpversion}}</div>
+                </div>
+                <div class="col-4 form-group">
+                    <div class="col-6">{% if create_sip_user_form.videosupport.field.required == True %}<span style="color: red;">*</span>{% endif %}<label>{{create_sip_user_form.videosupport.label}}</label></div>
+                    <div class="col-6">{{create_sip_user_form.videosupport}}</div>
+                </div>
+                <div class="col-4 form-group">
+                    <div class="col-6">{% if create_sip_user_form.rfc2833compensate.field.required == True %}<span style="color: red;">*</span>{% endif %}<label>{{create_sip_user_form.rfc2833compensate.label}}</label></div>
+                    <div class="col-6">{{create_sip_user_form.rfc2833compensate}}</div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-4 form-group"></div><div class="col-2"><button type="submit" class="btn btn-success">Zapisz</button></div>
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-4">
-                <div class="col-6">{{create_sip_user_form.nat.label}}</div>
-                <div class="col-6">{{create_sip_user_form.nat}}</div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-4">
-                <div class="col-6">{{create_sip_user_form.type.label}}</div>
-                <div class="col-6">{{create_sip_user_form.type}}</div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-4">
-                <div class="col-6">{{create_sip_user_form.qualify.label}}</div>
-                <div class="col-6">{{create_sip_user_form.qualify}}</div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-4">
-                <div class="col-6">{{create_sip_user_form.allowoverlap.label}}</div>
-                <div class="col-6">{{create_sip_user_form.allowoverlap}}</div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-4">
-                <div class="col-6">{{create_sip_user_form.allowsubscribe.label}}</div>
-                <div class="col-6">{{create_sip_user_form.allowsubscribe}}</div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-4">
-                <div class="col-6">{{create_sip_user_form.allowtransfer.label}}</div>
-                <div class="col-6">{{create_sip_user_form.allowtransfer}}</div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-4">
-                <div class="col-6">{{create_sip_user_form.ignorespdversion.label}}</div>
-                <div class="col-6">{{create_sip_user_form.ignorespdversion}}</div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-4">
-                <div class="col-6">{{create_sip_user_form.videosupport.label}}</div>
-                <div class="col-6">{{create_sip_user_form.videosupport}}</div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-4">
-                <div class="col-6">{{create_sip_user_form.rfe2833compensate.label}}</div>
-                <div class="col-6">{{create_sip_user_form.rfe2833compensate}}</div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="row">
-                <div class="col-2"></div><div class="col-2"><button type="submit" class="btn btn-success">Zapisz</button></div>
+        <div class="col-6">
+            <div class="col-12"><h3 class="">Zarejestrowane uzytkownicy</h3></div>
+            <div>
+                <div class="row" id="users">
+                    <table class="table table-striped table-bordered" id="users_list">
+                          <thead>
+                            <tr>
+                              <th scope="col">Nazwa</th>
+                              <th scope="col">Kontekst</th>
+                              <th scope="col">Typ</th>
+                              <th scope="col">HOST</th>
+                              <th scope="col">Dopuszczone kodeki</th>
+                              <th scope="col">Nie dopuszczone kodeki</th>
+                              <th scope="col"></th>
+                            </tr>
+                          </thead>
+                          <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 </form>
+{% endblock %}
+
+{% block script_onload %}
+    <script src="{% static 'js/get_template.js' %}"></script>
+
+    <script>
+        function load_spiner(to) {
+            $('.spinner').remove();
+            to.append("<div class='col-12 text-center'><img class='spinner' src='{% static "images/spinner.gif" %}'></div>")
+        }
+        load_spiner($('#users'));
+    </script>
+
+    <script>
+        Mustache.tags=['<%', '%>'];
+        function generate_error_message(to, error_message) {
+            get_template('/static/templates/controller_templates.html', '#errorMessage', function (template) {
+                rendered_template = Mustache.render(template.html(), {error_message:error_message});
+                $('.error_message').remove();
+                $(to).prepend(rendered_template);
+            })
+        }
+    </script>
+
+    <script type="text/userTemplate" id="userTemplate">
+        <tr id="<%exten%>" class="user">
+              <td><%name%></td>
+              <td><%context%></td>
+              <td><%type%></td>
+              <td><%host%></td>
+              <td><%allow%></td>
+              <td><%disallow%></td>
+              <!-- <td><i class="fas fa-trash-alt text-danger" style="font-size: 1vw" data-trigger="delete_bridge" data-bridge_id="<%exten%>" id="delete_bridge"></i></td> -->
+        </tr>
+    </script>
+
+    <script>
+        function get_active_users() {
+            $.ajax({
+                url:'{% url 'create_sip_user' %}',
+                dataType:'json',
+                method:'post',
+                data:{'function':'get_active_users', 'csrfmiddlewaretoken':'{{ csrf_token }}'},
+                success:function (data) {
+                    if(data.success===false){
+                        load_spiner($('#users'));
+                        $('.user').remove();
+                        if(data.code==='databaseConnectionError'){
+                            generate_error_message('#users', data.message);}
+                    } else {
+                        clearInterval(users_interval);
+                        $('.spinner').remove();
+                        $('.error_message').remove();
+                        parsed = JSON.parse(data);
+                        generate_users_content($('#userTemplate').html(), parsed.users_list, $('#users_list tbody'));
+
+                    }
+                },
+                error:function () {load_spiner($('#users'));}
+            })
+        }
+
+        $(document).ready(function () {
+            get_active_users();
+            users_interval = setInterval(function () { get_active_users(); }, 5000);
+        })
+    </script>
+
+    <script>
+        Mustache.tags=['<%', '%>'];
+        function generate_users_content(template, data, selector) {
+            $('.user').remove();
+            for(user=0; user<data.length; user++){
+                user_data=data[user];
+                rendered_data={name:user_data.name, context:user_data.context, type:user_data.type, host:user_data.host, allow:user_data.allow, disallow:user_data.disallow}
+                rendered_template = Mustache.render(template, rendered_data);
+                selector.prepend(rendered_template);
+            }
+        }
+    </script>
 {% endblock %}
