@@ -68,6 +68,25 @@
 
 {% block script_onload %}
     <script src="{% static 'js/get_template.js' %}"></script>
+
+    <script>
+        var host = window.location.host,
+            protocol = window.location.protocol,
+            path_name = '/ari_controller/bridges_connection_info/',
+            ws_path = '';
+        if(protocol === 'http:'){
+            ws_path = 'ws://' + host + path_name;
+        } else if(protocol === 'https:'){
+            ws_path = 'wss://' + host + path_name;
+        }
+        var websocket = new WebSocket(ws_path);
+
+        websocket.onmessage = function (e) {
+            parsed=JSON.parse(e.data);
+            console.log(parsed.message);
+        }
+    </script>
+
     <script>
         function load_spiner(to) {
             $('.spinner').remove();

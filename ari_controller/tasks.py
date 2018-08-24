@@ -13,16 +13,16 @@ def get_active_channels():
     channels_dict = {'group_name':group_name, 'celery_response':True, 'data':active_channels}
     AsyncToSync(channel_layer.group_send)(group_name, {'type':'send.celery', 'message':channels_dict})
 
+@app.task
+def bridges_connection_info():
+    group_name='bridges_connection_info_group'
+    channel_layer = get_channel_layer()
+    bridges_dict = requests.get('http://192.168.7.72:8088/ari/bridges', auth=HTTPBasicAuth('roip_ari', 'roip_ari')).text
+    AsyncToSync(channel_layer.group_send)(group_name, {'type':'send.celery', 'message':bridges_dict})
+
 @app.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(1, get_active_channels.s())
+    sender.add_periodic_task(1, bridges_connection_info.s())
 
-'''@app.task
-def async_send(channel_name, text):
-    channel_layer = get_channel_layer()
-    AsyncToSync(channel_layer.send)(
-            channel_name,
-            {"type": "celery.message",
-             "text": json.dumps(text)
-             })'''
 

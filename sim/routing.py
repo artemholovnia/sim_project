@@ -2,7 +2,7 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 from channels.security.websocket import AllowedHostsOriginValidator
 from django.conf.urls import url
-from ari_controller.consumers import AriChannelsConsumer, ChannelsConsumer
+from ari_controller.consumers import AriChannelsConsumer, ChannelsConsumer, BridgesConnectionInfo
 application = ProtocolTypeRouter({
     # Empty for now (http->django views is added by default)
     'websocket':AllowedHostsOriginValidator(
@@ -10,6 +10,7 @@ application = ProtocolTypeRouter({
                 URLRouter(
                     [
                         url(r'^ari_controller/channels/$', ChannelsConsumer),
+                        url(r'^ari_controller/bridges_connection_info/$', BridgesConnectionInfo),
                         #url(r'^chat/$', ChatConsumer),
                     ]
                 )
