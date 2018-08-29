@@ -1,6 +1,7 @@
 {% extends 'main_template.html' %}
 {% load staticfiles %}
 {% block content %}
+    <div class="test"></div>
 <form action="{% url 'create_bridge' %}" method="POST" novalidate id="create_bridge_form">{% csrf_token %}
     <div class="row col-12">
 
@@ -49,6 +50,7 @@
                     <table class="table table-striped table-bordered" id="bridges_list">
                           <thead>
                             <tr>
+                              <th>Status</th>
                               <th scope="col">Kontekst</th>
                               <th scope="col">ID mostku</th>
                               <th scope="col">Nazwa (czytelna)</th>
@@ -58,6 +60,8 @@
                             </tr>
                           </thead>
                           <tbody>
+                                <td></td>
+                                <td colspan="6">asdasdasd</td>
                           </tbody>
                     </table>
             </div>
@@ -67,7 +71,88 @@
 {% endblock %}
 
 {% block script_onload %}
+    <script>
+    //$(document).ready(function () {
+    //    $('body').prepend('<div class="popup" style="z-index:100; display: block; position:absolute; height: 100px; width: 100px; background-color: #00bb00;">Test block</div>');
+    //    $('body').click(function (event) {
+    //        popup = $('.popup');
+    //        popup.css({'left':event.pageX+'px', 'top':event.pageY+'px'});
+    //        console.log(event.pageX, event.pageY);
+    //    })
+    //});
+    </script>
+
+    <script type="parentBridgeAdditional/text" id="parentBridgeAdditional">
+        <div id='<%bridge_id%>' class='bridge_channels' style='display:none;position: absolute;z-index: 100;background-color:#f2f2f2;min-height: 5vw;min-width: 20vw;border: 1px solid #dedede;box-shadow: 2px 3px 3px 0px #0000002b;'>
+            <button class='close_channels' style='position:absolute; right:0;z-index:50;'>X</button>
+        </div>
+    </script>
+
+    <script type="channelTemplate/text" id="channelTemplate">
+        <div class="col-12 additional_channel">
+            <div class="row">
+                <div class="col-3"><a href="#"><%channel_name%></a></div>
+                <div class="col-5"><%channel_id%></div>
+                <div class="col-4"><%context%></div>
+            </div>
+        </div>
+    </script>
+
+    <script>
+        Mustache.tags=['<%', '%>'];
+        function generate_additional_bridge_info(data) {
+            //$('.bridge_channels').remove();
+            for(bridge=0;bridge<data.length;bridge++){
+                bridge_data=data[bridge];
+                if($('#'+bridge_data.id).length === 0){
+                    bridge_parent = $('#parentBridgeAdditional').html();
+                    rendered_template = Mustache.render(bridge_parent, {bridge_id:bridge_data.id});
+                    $('body').prepend(rendered_template);
+                    parent_to_paste=$('#'+bridge_data.id);
+                    channel_template=$('#channelTemplate').html();
+                    for(channel=0;channel<bridge_data.channels_list.length;channel++){
+                        channel_data=bridge_data.channels_list[channel];
+                        parent_to_paste.append(Mustache.render(channel_template, {channel_name:channel_data.caller.number, channel_id:channel_data.id, context:channel_data.dialplan.context}))
+                    }
+                } else if ($('#'+bridge_data.id).length === 1){
+                    $('#'+bridge_data.id).find('.additional_channel').remove();
+                    parent_to_paste=$('#'+bridge_data.id);
+                    channel_template=$('#channelTemplate').html();
+                    for(channel=0;channel<bridge_data.channels_list.length;channel++){
+                        channel_data=bridge_data.channels_list[channel];
+                        parent_to_paste.append(Mustache.render(channel_template, {channel_name:channel_data.caller.number, channel_id:channel_data.id, context:channel_data.dialplan.context}))
+                    }
+                }
+            }
+        };
+    </script>
+
     <script src="{% static 'js/get_template.js' %}"></script>
+
+    <script type="text/activeChannelOnBridge" id="activeChannelOnBridge">
+        <td></td><td colspan="6"><%%></td>
+    </script>
+
+    <script>
+        function change_active_bridge_content(activated_bridges, channels) {
+            $.each($('.bridge'), function (itter, el) {
+                if(activated_bridges.indexOf($(this).attr('id')) >= 0) {
+                    $(this).find('#status-icon').attr('class', 'fas fa-circle text-success');
+                    $(this).find('.bridge_id').html($(this).attr('bridge_id'));
+                    if ($(this).attr('active_channels_count') !== '0') {
+                        $(this).find('.channels_count').html($(this).attr('active_channels_count'));
+                    }
+                } else {
+                    $(this).find('#status-icon').attr('class', 'fas fa-circle text-danger');
+                    $(this).find('.channels_count').html('');
+                    $(this).find('.bridge_id').html('');
+                    $(this).attr('active', 0);
+                    $(this).attr('active_channels_count', 0);
+                    $(this).attr('bridge_id', '');
+                }
+            })
+        }
+    </script>
 
     <script>
         var host = window.location.host,
@@ -83,7 +168,44 @@
 
         websocket.onmessage = function (e) {
             parsed=JSON.parse(e.data);
-            console.log(parsed.message);
+            parsed=parsed.message;
+            activated_bridges=[];
+            if(parsed.length === 0){
+                $('.bridge').each(function () {
+                    $(this).attr('active', 0);
+                    $(this).attr('active_channels_count', 0);
+                    $(this).attr('bridge_id', '')
+                })
+            } else {
+                for(bridge=0;bridge<parsed.length;bridge++){
+                    bridge_dict=parsed[bridge];
+                    paste_to=$('#'+bridge_dict.name);
+                    paste_to.attr('active', 1);
+                    paste_to.attr('active_channels_count', bridge_dict.channels_count);
+                    paste_to.attr('bridge_id', bridge_dict.id);
+                    activated_bridges.push(bridge_dict.name)
+                }
+
+            }
+            generate_additional_bridge_info(parsed);
+            change_active_bridge_content(activated_bridges);
+            //if(parsed.length === 0){
+            //    $('.bridge').each(function () {
+            //        $(this).find('.channels_count').html('').removeClass('text-success');
+            //        $(this).find('#status-icon').attr('class', 'fas fa-circle text-danger');
+            //    })
+            //} else {
+            //    for(bridge=0; bridge<parsed.length; bridge++){
+            //      bridge_dict = parsed[bridge];
+            //        if(bridge_dict.channels_count === 0){
+            //            $('#'+bridge_dict.name).find('#status-icon').attr('class', 'fas fa-circle text-success');
+            //            $('#'+bridge_dict.name).find('.channels_count').html('').removeClass('text-success');
+            //        } else {
+            //            $('#'+bridge_dict.name).find('#status-icon').attr('class', 'fas fa-circle text-success');
+            //            $('#'+bridge_dict.name).find('.channels_count').html(bridge_dict.channels_count).addClass('text-success');
+            //        }
+            //    }
+            //}
         }
     </script>
 
@@ -96,14 +218,31 @@
     </script>
 
     <script type="text/bridgeTemplate" id="bridgeTemplate">
-        <tr id="<%exten%>" class="bridge">
+        <tr id="<%exten%>" class="bridge" active=0 active_channels_count=0 bridge_id="">
+              <td><i id="status-icon" class=""></i><span class="channels_count text-success"></span><br><small class="bridge_id"></small></td>
               <td><%context%></td>
               <td><%exten%></td>
               <td><%appdata%></td>
               <td><%app%></td>
               <td><%priority%></td>
-              <td><i class="fas fa-trash-alt text-danger" style="font-size: 1vw" data-trigger="delete_user" data-bridge_id="<%name%>" id="delete_user"></i></td>
+              <td><i class="fas fa-trash-alt text-danger delete_bridge" style="font-size: 1vw" data-trigger="delete_user" data-bridge_id="<%exten%>"></i></td>
         </tr>
+    </script>
+    
+    <script>
+        $(document).ready(function () {
+            $('body').on('click', '.bridge', function (event) {
+                $('.bridge_channels').css({'display':'none'}); //скрываем все дополнительные блоки с информацие по подключенным каналам
+                bridge_id=$(this).attr('bridge_id');
+                if(bridge_id.length !== 0){
+                    $('#'+bridge_id).css({'display':'block', 'left':event.pageX+'px', 'top':event.pageY+'px'});
+                }
+            })
+
+            $('body').on('click', '.close_channels', function (event) {
+                $(this).parents('.bridge_channels').css({'display':'none'});
+            })
+        })
     </script>
 
     <script>
@@ -205,9 +344,10 @@
 
     <script>
     $(document).ready(function () {
-        $('body').on('click', '#delete_bridge', function () {
+        $('body').on('click', '.delete_bridge', function () {
             var bridge_id=$(this).data('bridge_id'),
                 form_data={'bridge_id':bridge_id, 'function':'delete_bridge', 'csrfmiddlewaretoken':'{{ csrf_token }}'};
+                console.log(form_data);
             $.ajax({
                 url:'{% url "create_bridge" %}',
                 method:'post',
