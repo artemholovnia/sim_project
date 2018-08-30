@@ -1,6 +1,7 @@
 import celery, websocket, requests
 from sim.celery import app
 from requests.auth import HTTPBasicAuth
+from requests.exceptions import ConnectionError
 from channels.layers import get_channel_layer
 from asgiref.sync import AsyncToSync
 import asyncio, json
@@ -9,30 +10,36 @@ import asyncio, json
 def get_active_channels():
     group_name='channels_group'
     channel_layer = get_channel_layer()
-    active_channels = requests.get('http://192.168.7.72:8088/ari/channels', auth=HTTPBasicAuth('roip_ari', 'roip_ari')).text
-    channels_dict = {'group_name':group_name, 'celery_response':True, 'data':active_channels}
-    AsyncToSync(channel_layer.group_send)(group_name, {'type':'send.celery', 'message':channels_dict})
+    try:
+        active_channels = requests.get('http://192.168.7.72:8088/ari/channels', auth=HTTPBasicAuth('roip_ari', 'roip_ari')).text
+        channels_dict = {'group_name':group_name, 'celery_response':True, 'data':active_channels}
+        AsyncToSync(channel_layer.group_send)(group_name, {'type':'send.celery', 'message':channels_dict})
+    except ConnectionError:
+        AsyncToSync(channel_layer.group_send)(group_name, {'type':'send.message', 'message':'Blad polaczenia z Asteriskiem'})
 
 @app.task
 def bridges_connection_info():
     response_list = []
     group_name='bridges_connection_info_group'
     channel_layer = get_channel_layer()
-    bridges_list = json.loads(requests.get('http://192.168.7.72:8088/ari/bridges', auth=HTTPBasicAuth('roip_ari', 'roip_ari')).text)
-    print(bridges_list)
-    channels_list = json.loads(requests.get('http://192.168.7.72:8088/ari/channels', auth=HTTPBasicAuth('roip_ari', 'roip_ari')).text)
-    for bridge in bridges_list:
-        itter=0
-        bridge_dict = {'id':bridge.get('id'), 'creator':bridge.get('creator'), 'name':bridge.get('name'), 'ari':bridge, 'channels_list':[]}
-        active_channels = bridge.get('channels')
-        for channel in active_channels:
-            for api_channel in channels_list:
-                if api_channel.get('id') == channel:
-                    itter+=1
-                    bridge_dict.get('channels_list').append(api_channel)
-        bridge_dict.update({'channels_count':itter})
-        response_list.append(bridge_dict)
-    AsyncToSync(channel_layer.group_send)(group_name, {'type':'send.celery', 'message':response_list})
+    try:
+        bridges_list = json.loads(requests.get('http://192.168.7.72:8088/ari/bridges', auth=HTTPBasicAuth('roip_ari', 'roip_ari')).text)
+        print(bridges_list)
+        channels_list = json.loads(requests.get('http://192.168.7.72:8088/ari/channels', auth=HTTPBasicAuth('roip_ari', 'roip_ari')).text)
+        for bridge in bridges_list:
+            itter=0
+            bridge_dict = {'id':bridge.get('id'), 'creator':bridge.get('creator'), 'name':bridge.get('name'), 'ari':bridge, 'channels_list':[]}
+            active_channels = bridge.get('channels')
+            for channel in active_channels:
+                for api_channel in channels_list:
+                    if api_channel.get('id') == channel:
+                        itter+=1
+                        bridge_dict.get('channels_list').append(api_channel)
+            bridge_dict.update({'channels_count':itter})
+            response_list.append(bridge_dict)
+        AsyncToSync(channel_layer.group_send)(group_name, {'type':'send.celery', 'message':response_list})
+    except ConnectionError:
+        AsyncToSync(channel_layer.group_send)(group_name,{'type': 'send.message', 'message': 'Blad polaczenia z Asteriskiem'})
 
 @app.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):

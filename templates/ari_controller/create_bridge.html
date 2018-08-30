@@ -167,6 +167,8 @@
         var websocket = new WebSocket(ws_path);
 
         websocket.onmessage = function (e) {
+            console.log(e);
+
             parsed=JSON.parse(e.data);
             parsed=parsed.message;
             activated_bridges=[];

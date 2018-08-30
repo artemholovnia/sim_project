@@ -69,7 +69,7 @@ class BridgesConnectionInfo(AsyncWebsocketConsumer):
             await self.channel_layer.send(self.channel_name, 'auth error')
 
     async def websocket_disconnect(self, message):
-        await self.channel_name.send(self.channel_name, {'type':'send.message', 'message':'Jestes wylogowany z websoketa "{channel_name}"'})
+        await self.channel_layer.send(self.channel_name, {'type':'send.message', 'message':'Jestes wylogowany z websoketa "{channel_name}"'})
 
     async def send_message(self, message):
         await self.send(message.get('message'))
