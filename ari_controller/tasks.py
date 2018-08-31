@@ -11,7 +11,7 @@ def get_active_channels():
     group_name='channels_group'
     channel_layer = get_channel_layer()
     try:
-        active_channels = requests.get('http://192.168.7.72:8088/ari/channels', auth=HTTPBasicAuth('roip_ari', 'roip_ari')).text
+        active_channels = requests.get('http://192.168.7.110 :8088/ari/channels', auth=HTTPBasicAuth('roip_ari', 'roip_ari')).text
         channels_dict = {'group_name':group_name, 'celery_response':True, 'data':active_channels}
         AsyncToSync(channel_layer.group_send)(group_name, {'type':'send.celery', 'message':channels_dict})
     except ConnectionError:
@@ -23,9 +23,9 @@ def bridges_connection_info():
     group_name='bridges_connection_info_group'
     channel_layer = get_channel_layer()
     try:
-        bridges_list = json.loads(requests.get('http://192.168.7.72:8088/ari/bridges', auth=HTTPBasicAuth('roip_ari', 'roip_ari')).text)
+        bridges_list = json.loads(requests.get('http://192.168.7.110:8088/ari/bridges', auth=HTTPBasicAuth('roip_ari', 'roip_ari')).text)
         print(bridges_list)
-        channels_list = json.loads(requests.get('http://192.168.7.72:8088/ari/channels', auth=HTTPBasicAuth('roip_ari', 'roip_ari')).text)
+        channels_list = json.loads(requests.get('http://192.168.7.110:8088/ari/channels', auth=HTTPBasicAuth('roip_ari', 'roip_ari')).text)
         for bridge in bridges_list:
             itter=0
             bridge_dict = {'id':bridge.get('id'), 'creator':bridge.get('creator'), 'name':bridge.get('name'), 'ari':bridge, 'channels_list':[]}
