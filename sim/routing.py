@@ -9,8 +9,8 @@ application = ProtocolTypeRouter({
             AuthMiddlewareStack(
                 URLRouter(
                     [
-                        url(r'^/ws/ari_controller/channels/$', ChannelsConsumer),
-                        url(r'^/ws/ari_controller/bridges_connection_info/$', BridgesConnectionInfo),
+                        url(r'^ws/ari_controller/channels/$', ChannelsConsumer),
+                        url(r'^ws/ari_controller/bridges_connection_info/$', BridgesConnectionInfo),
                         #url(r'^chat/$', ChatConsumer),
                     ]
                 )
