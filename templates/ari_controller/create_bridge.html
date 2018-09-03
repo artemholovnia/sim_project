@@ -160,9 +160,9 @@
             path_name = '/ari_controller/bridges_connection_info/',
             ws_path = '';
         if(protocol === 'http:'){
-            ws_path = 'ws://' + host + 'ws/' + path_name;
+            ws_path = 'ws://' + host + '/ws' + path_name;
         } else if(protocol === 'https:'){
-            ws_path = 'wss://' + host + 'ws/' + path_name;
+            ws_path = 'wss://' + host + '/ws' + path_name;
         }
         var websocket = new WebSocket(ws_path);
 
