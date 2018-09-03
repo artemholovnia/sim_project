@@ -44,9 +44,9 @@
             path_name = window.location.pathname,
             ws_path = '';
         if(protocol === 'http:'){
-            ws_path = 'ws://' + host + path_name;
+            ws_path = 'ws://' + host + 'ws/' + path_name;
         } else if(protocol === 'https:'){
-            ws_path = 'wss://' + host + path_name;
+            ws_path = 'wss://' + host + 'ws/' + path_name;
         }
         var websocket = new WebSocket(ws_path);
 
