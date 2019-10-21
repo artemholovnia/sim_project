@@ -43,7 +43,7 @@ requests==2.19.1
 screen==1.0.1
 selenium==3.13.0
 six==1.11.0
-Twisted==18.7.0
+Twisted==19.7.0
 txaio==18.7.1
 urllib3==1.23
 vine==1.1.4
