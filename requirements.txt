@@ -25,7 +25,7 @@ hyperlink==18.0.0
 idna==2.7
 incremental==17.5.0
 kombu==4.2.1
-lxml==4.2.3
+lxml==4.6.3
 msgpack==0.5.6
 mysql-connector==2.1.6
 mysql-connector-python==8.0.11
