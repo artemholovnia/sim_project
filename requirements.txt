@@ -31,7 +31,7 @@ mysql-connector==2.1.6
 mysql-connector-python==8.0.11
 mysqlclient==1.3.13
 peewee==3.6.4
-Pillow==5.2.0
+Pillow==8.2.0
 pkg-resources==0.0.0
 protobuf==3.6.0
 pycparser==2.18
